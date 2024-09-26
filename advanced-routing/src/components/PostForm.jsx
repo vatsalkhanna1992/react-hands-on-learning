@@ -9,8 +9,6 @@ export const PostForm = ({type, data = []}) => {
   const title = useRef("");
   const userId = useRef("");
   const body = useRef("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
   const [titleError, setTitleError] = useState('');
   const [bodyError, setBodyError] = useState('');
   const [userError, setUserError] = useState('');
@@ -18,10 +16,10 @@ export const PostForm = ({type, data = []}) => {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState("");
 
-  const createPost = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
+  const hasValidationErrors = () => {
     const titleErrors = validateTitle(title.current.value)
     setTitleError(titleErrors)
 
@@ -33,59 +31,39 @@ export const PostForm = ({type, data = []}) => {
 
     if (titleErrors.length !== 0 || bodyErrors.length !== 0 || userErrors.length !== 0) {
       setIsSubmitting(false)
-      return false
+      return true
+    }
+    return false;
+  }
+
+  const createPost = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true)
+
+    if (hasValidationErrors()) {
+      return false;
     }
 
-    const formData = {title: title.current.value, userId: userId.current.value, body: body.current.value }
-
-    try {
-      const response = await fetch('http://127.0.0.1:3002/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const post = await response.json();
-      navigate('/posts/' + post.id);
-    }
-    catch (error) {
-      setIsError(true)
-      setError(error)
-    }
-    finally {
-      setIsSubmitting(false)
-    }
+    callFetch('http://127.0.0.1:3002/posts', 'POST')
   }
 
   const updatePost = async (e) => {
     e.preventDefault();
     setIsSubmitting(true)
 
-    const titleErrors = validateTitle(title.current.value)
-    setTitleError(titleErrors)
-
-    const bodyErrors = validateBody(body.current.value)
-    setBodyError(bodyErrors)
-
-    const userErrors = validateUser(userId.current.value)
-    setUserError(userErrors)
-
-    if (titleErrors.length !== 0 || bodyErrors.length !== 0 || userErrors.length !== 0) {
-      setIsSubmitting(false)
-      return false
+    if (hasValidationErrors()) {
+      return false;
     }
 
+    callFetch('http://127.0.0.1:3002/posts/' + data.id, 'PUT')
+  }
+
+  const callFetch = async (url, method) => {
     const formData = {title: title.current.value, userId: userId.current.value, body: body.current.value }
 
     try {
-      const response = await fetch('http://127.0.0.1:3002/posts/' + data.id, {
-        method: 'PUT',
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
