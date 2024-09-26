@@ -8,8 +8,12 @@ export const Posts = () => {
   const [posts, setPosts] = useState([]);
   const {data, isError, isLoading, error} = useFetch("http://127.0.0.1:3002/posts")
 
+
+  const [isFilterError, setIsFilterError] = useState(false);
+  const [filterError, setFilterError] = useState('');
+
   useEffect(() => {
-  setPosts(data);
+    setPosts(data);
   }, [data]);
 
   const query = useRef("");
@@ -32,13 +36,14 @@ export const Posts = () => {
       const data = await response.json();
       setPosts(data);
     }
-    catch (error) {
-      console.error('Error during the POST request:', error);
+    catch (e) {
+      setIsFilterError(true);
+      setFilterError(e)
     }
   }
   return (
 
-    isError ? <ErrorBoundary error={error} /> :
+    isError || isFilterError ? <ErrorBoundary error={isError ? error : filterError} /> :
     <>
       { isLoading ? <div className="loading-spinner"></div> : (
         <div className={`container ${isLoading ? "loading" : ""}`}>
