@@ -23,7 +23,6 @@ const RefForm = () => {
       setPasswordErrors(passwordError);
     }
 
-
     if (emailError.length === 0 && passwordError.length === 0) {
       alert("Success");
     }
